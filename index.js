@@ -64,6 +64,7 @@ async function run() {
 
         // MongoDB DataBaase Name Creat 
         const querieCollection = client.db('queriesDB').collection('queriesData');
+        const recommendCollection = client.db('queriesDB').collection('recommendBD');
 
 
         // auth Protection API
@@ -162,7 +163,35 @@ async function run() {
         // })
 
 
+        // ***********  Recommend Section ************ ////
 
+        //  Client side request send and cliend side to MongoDB Data send
+        app.post('/recommends', async (req, res) => {
+            const newRecommend = req.body;
+            console.log(newRecommend);
+
+            newRecommend.recommendationCount = +newRecommend.recommendationCount;
+            
+            const result = await recommendCollection.insertOne(newRecommend);
+
+            // update recommand count in query collection
+            const updateDoc = {
+                $inc: { 
+                    recommendationCount: 1 },
+            }
+            const recommentQuery = { _id: new ObjectId(newRecommend.queryId) }
+            const updateRecommentCount = await querieCollection.updateOne(recommentQuery, updateDoc)
+            console.log(updateRecommentCount)
+
+            res.send(result);
+        })
+
+        // BongoDB teke Data pawar function
+        app.get('/recommends', async (req, res) => {
+            const cursor = recommendCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
 
 
 
