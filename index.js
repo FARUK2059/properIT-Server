@@ -193,6 +193,13 @@ async function run() {
             res.send(result);
         })
 
+        // get query data for productID base from mongoDB to server
+        app.get('/recommends/:queryId', async (req, res) => {
+            const queryId = req.params.queryId;
+            const recommendations = await recommendCollection.find({ queryId }).toArray();
+            res.send(recommendations);
+        })
+
 
 
 
