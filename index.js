@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require('cors');
-// const jwt = require('jsonwebtoken');
-// const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
@@ -16,7 +16,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-// app.use(cookieParser());
+app.use(cookieParser());
 
 
 // MOngoDeB Conection
@@ -33,22 +33,21 @@ const client = new MongoClient(uri, {
 });
 
 // creat a new middlewares 
-// const logger = (req, res, next) => {
-//     console.log('log: info', req.method, req.url);
-//     next();
-// }
+const logger = (req, res, next) => {
+    console.log('log: info', req.method, req.url);
+    next();
+}
 
 // JWT verify function
 // const verifyToken = (req, res, next) => {
 //     const token = req?.cookies?.token;
-//     // console.log('token in the middleware', token);
 
-//     if (!token) {
-//         return res.status(401).send({ message: 'unauthorized access' })
+//     if(!token) {
+//         return res.status(401).send({message: 'unauthorized access'})
 //     }
 //     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-//         if (err) {
-//             return res.status(401).send({ message: 'unauthorized access' })
+//         if(err){
+//             return res.status(401).send({message: 'unauthorized Access'})
 //         }
 //         req.user = decoded;
 //         next();
@@ -68,27 +67,27 @@ async function run() {
 
 
         // auth Protection API
-        // app.post('/jwt', logger, async (req, res) => {
-        //     const user = req.body;
-        //     console.log('user for token', user);
-        //     const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+        app.post('/jwt', logger, async (req, res) => {
+            const user = req.body;
+            console.log('user for token', user);
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
 
-        //     // res.send({token});
+            // res.send({ token });
 
-        //     res.cookie('token', token, {
-        //         httpOnly: true,
-        //         secure: true,
-        //         sameSite: 'none'
-        //     })
-        //         .send({ success: true });
-        // })
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none'
+            })
+                .send({ success: true });
+        })
 
-        //  JWT Api LogOut function
-        // app.post('/logout', async (req, res) => {
-        //     const user = req.body;
-        //     console.log('logging out', user);
-        //     res.clearCookie('token', { maxAge: 0 }).send({ success: true })
-        // })
+        //  JWT Api LogOut function or token clear
+        app.post('/logout', logger,  async (req, res) => {
+            const user = req.body;
+            console.log('logging out', user);
+            res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+        })
 
 
 
@@ -104,8 +103,8 @@ async function run() {
         // BongoDB letest Data pawar function
         app.get('/letest-queries', async (req, res) => {
             const latestQuery = await querieCollection.find().sort({ recommenddatetime: -1 }).limit(8).toArray();
-            res.json(latestQuery);
-            // res.send(latestQuery);
+            // res.json(latestQuery);
+            res.send(latestQuery);
         })
 
 
@@ -131,6 +130,16 @@ async function run() {
             const filter = { _id: new ObjectId(id) };
             const result = await querieCollection.findOne(filter);
             res.send(result);
+        })
+
+        // get serch funtionality creat
+        app.get('all-query', async (req, res) => {
+            // const search = req.query.search
+            const search = req.query.productName
+
+            const result = await querieCollection.find({ productName: { $regex: new RegExp(search, 'i') } }).toArray();
+
+            res.send(result)
         })
 
 
@@ -214,6 +223,9 @@ async function run() {
             const query = { _id: new ObjectId(id) }
 
             const result = await recommendCollection.deleteOne(query);
+
+            // const decrement=  await querieCollection.findByIdAndUpdate(id, { $inc: { recommendationCount: -1 } })
+            // console.log(decrement);
 
             // update recommand count decreases in query collection
             // const recommendation = await recommendCollection.findOne(query);
