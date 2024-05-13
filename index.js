@@ -101,6 +101,13 @@ async function run() {
             res.send(result);
         })
 
+        // BongoDB letest Data pawar function
+        app.get('/letest-queries', async (req, res) => {
+            const latestQuery = await querieCollection.find().sort({ recommenddatetime: -1 }).limit(8).toArray();
+            res.json(latestQuery);
+            // res.send(latestQuery);
+        })
+
 
         //  Client side request send and cliend side to MongoDB Data send
         app.post('/queries', async (req, res) => {
@@ -171,13 +178,14 @@ async function run() {
             console.log(newRecommend);
 
             newRecommend.recommendationCount = +newRecommend.recommendationCount;
-            
+
             const result = await recommendCollection.insertOne(newRecommend);
 
             // update recommand count in query collection
             const updateDoc = {
-                $inc: { 
-                    recommendationCount: 1 },
+                $inc: {
+                    recommendationCount: 1
+                },
             }
             const recommentQuery = { _id: new ObjectId(newRecommend.queryId) }
             const updateRecommentCount = await querieCollection.updateOne(recommentQuery, updateDoc)
@@ -199,6 +207,33 @@ async function run() {
             const recommendations = await recommendCollection.find({ queryId }).toArray();
             res.send(recommendations);
         })
+
+        // Query data delate Mathod
+        app.delete('/recommends/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+
+            const result = await recommendCollection.deleteOne(query);
+
+            // update recommand count decreases in query collection
+            // const recommendation = await recommendCollection.findOne(query);
+            // const updateQuery = { _id: new ObjectId(recommendation.queryId) };
+            // const updateOperation = {
+            //     $inc: {
+            //         recommendationCount: -1
+            //     }
+            // };
+            // const updateResult = await querieCollection.updateOne(updateQuery, updateOperation);
+            // console.log(updateResult);
+
+
+            // const recommentQuerys = { _id: new ObjectId(descressRecommed.queryId) }
+            // const decreasesRecommentCount = await querieCollection.updateOne(recommentQuerys, updateDocs)
+            // console.log(decreasesRecommentCount)
+
+            res.send(result);
+        })
+
 
 
 
