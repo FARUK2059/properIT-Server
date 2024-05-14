@@ -12,6 +12,8 @@ const port = process.env.PORT || 5000;
 app.use(cors({
     origin: [
         'http://localhost:5173',
+        'https://proper-it-55963.web.app',
+        'https://proper-it-55963.firebaseapp.com'
     ],
     credentials: true
 }));
@@ -58,7 +60,7 @@ const logger = (req, res, next) => {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
 
         // MongoDB DataBaase Name Creat 
@@ -67,6 +69,27 @@ async function run() {
 
 
         // auth Protection API
+        //creating Token
+        // app.post("/jwt", logger, async (req, res) => {
+        //     const user = req.body;
+        //     console.log("user for token", user);
+        //     const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{ expiresIn: '1h' } );
+
+        //     res.cookie("token", token, cookieOptions).send({ success: true });
+        // });
+
+        // //clearing Token
+        // app.post("/logout", async (req, res) => {
+        //     const user = req.body;
+        //     console.log("logging out", user);
+        //     res
+        //         .clearCookie("token", { ...cookieOptions, maxAge: 0 })
+        //         .send({ success: true });
+        // });
+
+
+
+
         app.post('/jwt', logger, async (req, res) => {
             const user = req.body;
             console.log('user for token', user);
@@ -83,7 +106,7 @@ async function run() {
         })
 
         //  JWT Api LogOut function or token clear
-        app.post('/logout', logger,  async (req, res) => {
+        app.post('/logout', logger, async (req, res) => {
             const user = req.body;
             console.log('logging out', user);
             res.clearCookie('token', { maxAge: 0 }).send({ success: true })
@@ -235,44 +258,27 @@ async function run() {
         app.delete('/recommends/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
+            const recommendation = await recommendCollection.findOne(query);
 
+            // Delete the recommendation
             const result = await recommendCollection.deleteOne(query);
 
-            // const decrement=  await querieCollection.findByIdAndUpdate(id, { $inc: { recommendationCount: -1 } })
-            // console.log(decrement);
+            // descress the RecommendationCount
+            const queryId = recommendation.queryId;
+            const updateDoc = {
+                $inc: { recommendationCount: -1 }
+            };
 
-            // update recommand count decreases in query collection
-            // const recommendation = await recommendCollection.findOne(query);
-            // const updateQuery = { _id: new ObjectId(recommendation.queryId) };
-            // const updateOperation = {
-            //     $inc: {
-            //         recommendationCount: -1
-            //     }
-            // };
-            // const updateResult = await querieCollection.updateOne(updateQuery, updateOperation);
-            // console.log(updateResult);
+            await querieCollection.updateOne({ _id: new ObjectId(queryId) }, updateDoc);
 
-
-            // const recommentQuerys = { _id: new ObjectId(descressRecommed.queryId) }
-            // const decreasesRecommentCount = await querieCollection.updateOne(recommentQuerys, updateDocs)
-            // console.log(decreasesRecommentCount)
 
             res.send(result);
         })
 
 
 
-
-
-
-
-
-
-
-
-
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
