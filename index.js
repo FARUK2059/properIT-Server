@@ -107,6 +107,20 @@ async function run() {
             res.send(latestQuery);
         })
 
+        // BongoDB letest My-Query Data pawar function
+        app.get('/my-queries', async (req, res) => {
+            const latestQuery = await querieCollection.find().sort({ datetime: -1 }).toArray();
+            // res.json(latestQuery);
+            res.send(latestQuery);
+        })
+
+        // BongoDB letest Allquery Data pawar function
+        app.get('/all-queries', async (req, res) => {
+            const latestQuery = await querieCollection.find().sort({ datetime: -1 }).toArray();
+            // res.json(latestQuery);
+            res.send(latestQuery);
+        })
+
 
         //  Client side request send and cliend side to MongoDB Data send
         app.post('/queries', async (req, res) => {
