@@ -42,18 +42,20 @@ const logger = (req, res, next) => {
 
 // JWT verify function
 // const verifyToken = (req, res, next) => {
-//     const token = req?.cookies?.token;
+//     const token = req.cookies.token
+//     if (!token) return res.status(401).send({ message: 'unauthorized access' })
+//     if (token) {
+//         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+//             if (err) {
+//                 console.log(err)
+//                 return res.status(401).send({ message: 'unauthorized access' })
+//             }
+//             console.log(decoded)
 
-//     if(!token) {
-//         return res.status(401).send({message: 'unauthorized access'})
+//             req.user = decoded
+//             next()
+//         })
 //     }
-//     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-//         if(err){
-//             return res.status(401).send({message: 'unauthorized Access'})
-//         }
-//         req.user = decoded;
-//         next();
-//     })
 // }
 
 
@@ -66,27 +68,6 @@ async function run() {
         // MongoDB DataBaase Name Creat 
         const querieCollection = client.db('queriesDB').collection('queriesData');
         const recommendCollection = client.db('queriesDB').collection('recommendBD');
-
-
-        // auth Protection API
-        //creating Token
-        // app.post("/jwt", logger, async (req, res) => {
-        //     const user = req.body;
-        //     console.log("user for token", user);
-        //     const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{ expiresIn: '1h' } );
-
-        //     res.cookie("token", token, cookieOptions).send({ success: true });
-        // });
-
-        // //clearing Token
-        // app.post("/logout", async (req, res) => {
-        //     const user = req.body;
-        //     console.log("logging out", user);
-        //     res
-        //         .clearCookie("token", { ...cookieOptions, maxAge: 0 })
-        //         .send({ success: true });
-        // });
-
 
 
 
@@ -130,10 +111,12 @@ async function run() {
 
         // BongoDB letest Data pawar function
         app.get('/letest-queries', async (req, res) => {
-            const latestQuery = await querieCollection.find().sort({ recommenddatetime: -1 }).limit(8).toArray();
+            const latestQuery = await querieCollection.find().sort({ recommenddatetime: -1 }).limit(6).toArray();
             // res.json(latestQuery);
             res.send(latestQuery);
         })
+
+
 
         // BongoDB letest My-Query Data pawar function
         app.get('/my-queries', async (req, res) => {
@@ -150,13 +133,15 @@ async function run() {
         })
 
 
-        //  Client side request send and cliend side to MongoDB Data send
+
+        //  Client side request send and cliend side to MongoDB Data send or add
         app.post('/queries', async (req, res) => {
             const newQuerie = req.body;
             console.log(newQuerie);
             const result = await querieCollection.insertOne(newQuerie);
             res.send(result);
         })
+
 
         // Query data delate Mathod
         app.delete('/queries/:id', async (req, res) => {
@@ -204,22 +189,6 @@ async function run() {
             const result = await querieCollection.updateOne(filter, queryUpdate, option);
             res.send(result);
         })
-
-        //  User Queries Data Show and request send email related data
-        // app.get('/queries', logger, verifyToken, async (req, res) => {
-        //     console.log(req.query.email);
-        //     console.log('token info', req.user);
-        //     if (req.user.email !== req.query.email) {
-        //         return res.status(403).send({ message: 'forbidden access' })
-        //     }
-        //     let query = {};
-        //     if (req.query?.email) {
-        //         query = { email: req.query.email }
-        //     }
-        //     const result = await querieCollection.find(query).toArray();
-        //     res.send(result);
-        // })
-
 
         // ***********  Recommend Section ************ ////
 
